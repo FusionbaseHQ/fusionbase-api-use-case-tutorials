@@ -6,36 +6,43 @@ from urllib.parse import quote
 # `search_fusionbase`: A function to search for companies in Fusionbase
 # Parameters:
 # - company_name: The name of the company to search.
+# - postal_code: The postal code to filter the search by (optional).
 # - source_key: The default source key (German Handelsregister by default).
 # - filter_source_keys: List of source keys to exclude from the search results (UK Business registry by default).
-def search_fusionbase(company_name, source_key="1051122944", filter_source_keys=["1784627846"]):
+def search_fusionbase(company_name, postal_code=None, source_key="1051122944", filter_source_keys=["1784627846"]):
     """
-    Searches for a company in Fusionbase, optionally filtering out specific sources.
+    Searches for a company in Fusionbase, optionally filtering by postal code and excluding specific sources.
     
     :param company_name: str - The name of the company to search for.
+    :param postal_code: str - The postal code to filter the search by (optional).
     :param source_key: str - The source key for filtering the search results.
     :param filter_source_keys: list - Source keys to exclude from the search results.
     :return: dict - A filtered list of search results from the Fusionbase API.
     """
-    # Step 1: URL-encode the company name for safe API requests
+    # Step 1: URL-encode the company name and postal code (if provided) for safe API requests
     encoded_company_name = quote(company_name)
-
-    # Step 2: Construct the search URL based on whether a source key is provided
+    
+    # Step 2: Construct the search URL based on whether source key and postal code are provided
     url = (f"https://api.fusionbase.com/api/v2/search/entities/organization?q={encoded_company_name}&source_key={source_key}"
            if source_key else f"https://api.fusionbase.com/api/v2/search/entities/organization?q={encoded_company_name}")
+    
+    # Step 3: Append postal code to the URL if provided
+    if postal_code:
+        encoded_postal_code = quote(postal_code)
+        url += f"&postal_code={encoded_postal_code}"
 
-    # Step 3: Set up the request headers with the Fusionbase API key
+    # Step 4: Set up the request headers with the Fusionbase API key
     headers = {
         'X-API-KEY': os.getenv('FUSIONBASE_API_KEY'),
         'Content-Type': 'application/json; charset=utf-8',
     }
 
-    # Step 4: Make the GET request to the Fusionbase API
+    # Step 5: Make the GET request to the Fusionbase API
     response = requests.get(url, headers=headers)
     response.raise_for_status()  # Check if the response is successful
     response_json = response.json()  # Parse the response JSON
 
-    # Step 5: Filter out results with unwanted source keys
+    # Step 6: Filter out results with unwanted source keys
     filtered_results = {
         "results": [
             result for result in response_json.get("results", [])
@@ -43,7 +50,7 @@ def search_fusionbase(company_name, source_key="1051122944", filter_source_keys=
         ]
     }
 
-    # Step 6: Return the filtered results
+    # Step 7: Return the filtered results
     return filtered_results
 
 

@@ -24,7 +24,7 @@ if __name__ == '__main__':
     # Iterating through each company in the dataset
     for company in companies:
         # Step 1: Search for the company in Fusionbase using its name.
-        search_results = search_fusionbase(company['name'])
+        search_results = search_fusionbase(company['name'], postal_code=company['postal_code'])
 
         # Step 2: Extract the Fusionbase entity ID if any results are found.
         fb_entity_id = search_results['results'][0]['entity']['fb_entity_id'] if search_results['results'] else None
